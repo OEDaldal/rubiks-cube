@@ -6,6 +6,8 @@ let mainColor = [
   "rgb(0, 128, 0)",
   "rgb(0, 0, 255)",
 ];
+let undoStack= [];///////////////
+let redoStack=[];////////////////
 let direction = ["right", "left", "up", "down", "front", "back"];
 let sideArray = [
   ["u3", "u6", "u9", "f3", "f6", "f9", "d3", "d6", "d9", "b7", "b4", "b1"],
@@ -65,12 +67,14 @@ function faceTurn(key) {
   let final_move = translationMatrix[direction_index.get(key)][currentState]      //finds the corresponding move in translationMatrix
   turn(direction_index.get(final_move), final_move)
   //turn(direction_index.get(key), key);
+  recordMove(final_move, false);
 }
 function faceTurnPrime(key) {
   let m = key.toLowerCase();
   let final_move = translationMatrix[direction_index.get(m)][currentState]
   for (let i = 0; i < 3; i++) {
     turn(direction_index.get(final_move), final_move);
+    recordMove(final_move, true);
   }
 }
 
@@ -162,6 +166,9 @@ function resetColor() {
     for (let j = 0; j < 18; j++) {
       pieces[j].style.backgroundColor = mainColor[i];
     }
+    undoStack = [];
+  redoStack = [];
+  updateUndoRedoButtons();
   }
   document.getElementById("seq").innerHTML = "&nbsp;";
   let cube = document.querySelector(".cube");
@@ -206,8 +213,19 @@ function stopAnimation() {
   continueAnimation = 0;
 }
 
-function checkKeyboardEventKey(eventKey, eventKeyCode) {
-  console.log({ eventKey, eventKeyCode });
+function checkKeyboardEventKey(eventKey, eventKeyCode, isCtrlPressed= false) {
+  console.log({ eventKey, eventKeyCode,isCtrlPressed });
+
+  if (isCtrlPressed) {
+    if (eventKey.toLowerCase() === 'z') {
+      undoMove();
+      return; // Stop further execution
+    }
+    if (eventKey.toLowerCase() === 'y') {
+      redoMove();
+      return; // Stop further execution
+    }
+  }
   switch (eventKey) {
     case "r":
     case "l":
@@ -251,7 +269,7 @@ function checkKeyboardEventKey(eventKey, eventKeyCode) {
 }
 document.onkeydown = function () {
   //Main EventListner for keypress
-  checkKeyboardEventKey(event.key, event.keyCode);
+  checkKeyboardEventKey(event.key, event.keyCode, event.ctrlKey);
 };
 
 document.querySelectorAll(".face-btn button").forEach((element) => {
@@ -277,8 +295,79 @@ document.querySelectorAll(".cube-turn").forEach((element) => {
   };
 });
 
+function recordMove(move, isPrime) {
+  // A new move is made, so we push it to the undo stack.
+  undoStack.push({ move: move, isPrime: isPrime });
+  
+  // Any new move invalidates the previous "redo" history.
+  redoStack = [];
+
+  // Optional: Update button states to enable/disable them
+  updateUndoRedoButtons();
+}
+
+
+function undoMove() {
+  if (undoStack.length === 0) {
+    console.log("Nothing to undo.");
+    return; // Nothing to undo
+  }
+
+  const lastMove = undoStack.pop();
+
+  // Perform the OPPOSITE move
+  // The opposite of a prime move is a regular move.
+  // The opposite of a regular move is a prime move (3 regular turns).
+  if (lastMove.isPrime) {
+    // It was a prime move, so we undo with a regular turn
+    turn(direction_index.get(lastMove.move), lastMove.move);
+  } else {
+    // It was a regular move, so we undo with a prime turn
+    for (let i = 0; i < 3; i++) {
+      turn(direction_index.get(lastMove.move), lastMove.move);
+    }
+  }
+
+  // Push the original move onto the redo stack so we can redo it
+  redoStack.push(lastMove);
+  updateUndoRedoButtons();
+}
+
+function redoMove() {
+  if (redoStack.length === 0) {
+    console.log("Nothing to redo.");
+    return; // Nothing to redo
+  }
+
+  const nextMove = redoStack.pop();
+
+  // Re-apply the move exactly as it was
+  if (nextMove.isPrime) {
+    // It was a prime move
+    for (let i = 0; i < 3; i++) {
+      turn(direction_index.get(nextMove.move), nextMove.move);
+    }
+  } else {
+    // It was a regular move
+    turn(direction_index.get(nextMove.move), nextMove.move);
+  }
+
+    function updateUndoRedoButtons() {
+    const undoBtn = document.querySelector('.undo-btn');
+    const redoBtn = document.querySelector('.redo-btn');
+
+    undoBtn.disabled = undoStack.length === 0;
+    redoBtn.disabled = redoStack.length === 0;
+}
+  // Push the move back onto the undo stack
+  undoStack.push(nextMove);
+  updateUndoRedoButtons();
+}
 document.querySelector(".generate").onclick = generate;
 document.querySelector(".reset").onclick = resetColor;
+//for undo and redo ///////////////////
+document.querySelector(".undo-btn").onclick = undoMove;
+document.querySelector(".redo-btn").onclick = redoMove;
 document.querySelector(".view").onclick = changeView;
 document.querySelector(".start-animation").onclick = () =>
   !continueAnimation && startAnimation();
