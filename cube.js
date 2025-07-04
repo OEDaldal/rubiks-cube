@@ -69,13 +69,31 @@ let translationMatrix = [
 [0,'f','r','b','l','d','r','u','l','d','f','u','b','u','r','d','l','u','f','d','b','b','r','f','l'],
 [0,'b','l','f','r','u','l','d','r','u','b','d','f','d','l','u','r','d','b','u','f','f','l','b','r']
 ]
+// Audio Manager
+const sounds = {
+  turn: new Audio('assets/turn.wav'),
+  scramble: new Audio('assets/scramble.wav'),
+  reset: new Audio('assets/reset.wav'),
+  turnPrime: new Audio('assets/turnPrime.wav')
+};
+
+// Play sound helper function
+function playSound(type, volume = 0.5) {
+  if (sounds[type]) {
+    sounds[type].volume = volume;
+    sounds[type].currentTime = 0; // Rewind to start if already playing
+    sounds[type].play().catch(e => console.log("Audio play failed:", e));
+  }
+}
 function faceTurn(key) {
+  playSound('turn');
   let final_move = translationMatrix[direction_index.get(key)][currentState]      //finds the corresponding move in translationMatrix
   turn(direction_index.get(final_move), final_move)
   recordMove(final_move, false);
   //turn(direction_index.get(key), key);
 }
 function faceTurnPrime(key) {
+  playSound('turn');
   let m = key.toLowerCase();
   let final_move = translationMatrix[direction_index.get(m)][currentState]
   for (let i = 0; i < 3; i++) {
@@ -85,7 +103,8 @@ function faceTurnPrime(key) {
 }
 
 function generate() {
-  resetColor();
+  playSound('scramble',0.7);
+  resetColor(true);
   let sequence = "";
   let sequenceArray = [];
   for (let i = 0; i < 30; i++) {
@@ -155,6 +174,7 @@ let stateArray =
 let currentState = 1;
 let currentClass = "s23";
 function cubeTurn(keycode) {
+  playSound('turnPrime');
   let k = keycode - 37;
   let cube = document.querySelector(".cube");
   cube.classList.remove(currentClass);
@@ -166,7 +186,8 @@ function changeView() {
   document.querySelector(".cube").classList.toggle("hide");
   document.querySelector(".plane-cube").classList.toggle("hide");
 }
-function resetColor() {
+function resetColor(skipSound=false) {
+  if(!skipSound) playSound('reset',0.2);
   for (let i = 0; i < 6; i++) {
     let pieces = document.querySelectorAll("." + direction[i] + " .part");
     for (let j = 0; j < 18; j++) {
