@@ -10,6 +10,8 @@ let mainColor = [
 ////////////////////////////////////
 let undoStack = [];
 let redoStack = [];
+let isDragging = false;
+let startX, startY;
 ///////////////////////////////////
 
 let direction = ["right", "left", "up", "down", "front", "back"];
@@ -305,7 +307,6 @@ function recordMove(move, isPrime) {
   // Any new move invalidates the previous "redo" history.
   redoStack = [];
 
-  // Optional: Update button states to enable/disable them
   updateUndoRedoButtons();
 }
 
@@ -375,6 +376,57 @@ function updateUndoRedoButtons() {
     redoBtn.disabled = redoStack.length === 0;
 }
 
+function handleDragStart(e) {
+  e.preventDefault();
+  isDragging = true;
+  startX = e.clientX || e.touches[0].clientX;
+  startY = e.clientY || e.touches[0].clientY;
+
+}
+
+function handleDragMove(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+
+  const currentX = e.clientX || e.touches[0].clientX;
+  const currentY = e.clientY || e.touches[0].clientY;
+
+  const deltaX = currentX - startX;
+  const deltaY = currentY - startY;
+
+  //Threshold to prevent accidental tiny drags from rotating the cube
+  const threshold = 50; // 50 pixels
+
+  if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+    // Determine the primary drag direction
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal drag
+      if (deltaX > 0) {
+        cubeTurn(39);
+      } else {
+        cubeTurn(37);
+      }
+    } else {
+      // Vertical drag
+      if (deltaY > 0) {
+        cubeTurn(40);
+      } else {
+        cubeTurn(38);
+      }
+    }
+    
+    //Reset dragging state immediately after one turn
+    // This prevents one long drag from spinning the cube uncontrollably.
+    isDragging = false;
+  }
+}
+
+function handleDragEnd(e) {
+  if (isDragging) {
+    isDragging = false;
+  }
+}
+
 document.querySelector(".generate").onclick = generate;
 document.querySelector(".reset").onclick = resetColor;
 document.querySelector(".view").onclick = changeView;
@@ -385,3 +437,14 @@ document.querySelector(".stop-animation").onclick = stopAnimation;
 //for undo and redo ///////////////////
 document.querySelector(".undo-btn").onclick = undoMove;
 document.querySelector(".redo-btn").onclick = redoMove;
+
+// Listen for mouse events
+document.body.addEventListener('mousedown', handleDragStart);
+document.body.addEventListener('mousemove', handleDragMove);
+document.body.addEventListener('mouseup', handleDragEnd);
+document.body.addEventListener('mouseleave', handleDragEnd); // In case mouse leaves window
+
+// Listen for touch events
+document.body.addEventListener('touchstart', handleDragStart, { passive: false });
+document.body.addEventListener('touchmove', handleDragMove, { passive: false });
+document.body.addEventListener('touchend', handleDragEnd);
