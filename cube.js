@@ -1,13 +1,17 @@
 let mainColor = [
   "rgb(255, 0, 0)",
-  "rgb(255, 140, 0)",
-  "rgb(255, 255, 255)",
+  "rgb(255, 111, 0)",
+  " rgb(255, 255, 255)",
   "rgb(255, 255, 0)",
-  "rgb(0, 128, 0)",
-  "rgb(0, 0, 255)",
+  "rgb(48, 214, 48)",
+  " rgb(7, 7, 203)",
 ];
-let undoStack= [];///////////////
-let redoStack=[];////////////////
+
+////////////////////////////////////
+let undoStack = [];
+let redoStack = [];
+///////////////////////////////////
+
 let direction = ["right", "left", "up", "down", "front", "back"];
 let sideArray = [
   ["u3", "u6", "u9", "f3", "f6", "f9", "d3", "d6", "d9", "b7", "b4", "b1"],
@@ -66,8 +70,8 @@ let translationMatrix = [
 function faceTurn(key) {
   let final_move = translationMatrix[direction_index.get(key)][currentState]      //finds the corresponding move in translationMatrix
   turn(direction_index.get(final_move), final_move)
-  //turn(direction_index.get(key), key);
   recordMove(final_move, false);
+  //turn(direction_index.get(key), key);
 }
 function faceTurnPrime(key) {
   let m = key.toLowerCase();
@@ -167,8 +171,8 @@ function resetColor() {
       pieces[j].style.backgroundColor = mainColor[i];
     }
     undoStack = [];
-  redoStack = [];
-  updateUndoRedoButtons();
+    redoStack = [];
+    updateUndoRedoButtons();
   }
   document.getElementById("seq").innerHTML = "&nbsp;";
   let cube = document.querySelector(".cube");
@@ -213,9 +217,8 @@ function stopAnimation() {
   continueAnimation = 0;
 }
 
-function checkKeyboardEventKey(eventKey, eventKeyCode, isCtrlPressed= false) {
+function checkKeyboardEventKey(eventKey, eventKeyCode, isCtrlPressed= false ) {
   console.log({ eventKey, eventKeyCode,isCtrlPressed });
-
   if (isCtrlPressed) {
     if (eventKey.toLowerCase() === 'z') {
       undoMove();
@@ -363,12 +366,22 @@ function redoMove() {
   undoStack.push(nextMove);
   updateUndoRedoButtons();
 }
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.querySelector('.undo-btn');
+    const redoBtn = document.querySelector('.redo-btn');
+
+    undoBtn.disabled = undoStack.length === 0;
+    redoBtn.disabled = redoStack.length === 0;
+}
+
 document.querySelector(".generate").onclick = generate;
 document.querySelector(".reset").onclick = resetColor;
-//for undo and redo ///////////////////
-document.querySelector(".undo-btn").onclick = undoMove;
-document.querySelector(".redo-btn").onclick = redoMove;
 document.querySelector(".view").onclick = changeView;
 document.querySelector(".start-animation").onclick = () =>
   !continueAnimation && startAnimation();
 document.querySelector(".stop-animation").onclick = stopAnimation;
+
+//for undo and redo ///////////////////
+document.querySelector(".undo-btn").onclick = undoMove;
+document.querySelector(".redo-btn").onclick = redoMove;
