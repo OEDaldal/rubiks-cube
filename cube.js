@@ -73,7 +73,7 @@ let translationMatrix = [
 const sounds = {
   turn: new Audio('assets/turn.wav'),
   scramble: new Audio('assets/scramble.wav'),
-  reset: new Audio('assets/reset.wav'),
+  reset: new Audio('assets/turnPrime.wav'),
   turnPrime: new Audio('assets/turnPrime.wav')
 };
 
