@@ -12,6 +12,8 @@ let undoStack = [];
 let redoStack = [];
 let isDragging = false;
 let startX, startY;
+let scrambleStartTime;
+let timerInterval;
 ///////////////////////////////////
 
 let direction = ["right", "left", "up", "down", "front", "back"];
@@ -60,6 +62,22 @@ function turn(index, face) {
     document.getElementById("x" + sideArray[index][i]).style.backgroundColor =
       sideColorArray[(i + 3) % 12];
   }
+}
+// Check if cube is solved
+let isSolved = true;
+for (let i = 0; i < 6; i++) {
+  let pieces = document.querySelectorAll("." + direction[i] + " .part");
+  for (let j = 0; j < 18; j++) {
+    if (pieces[j].style.backgroundColor !== mainColor[i]) {
+      isSolved = false;
+      break;
+    }
+  }
+  if (!isSolved) break;
+}
+
+if (isSolved) {
+  stopTimer();
 }
 let translationMatrix = [
 [0,'r','b','l','f','r','u','l','d','f','u','b','d','r','d','l','u','f','d','b','u','r','f','l','b'],        //matrix is used for translating every move
@@ -140,6 +158,16 @@ function generate() {
     sequence += " ";
   }
   document.getElementById("seq").textContent = sequence;
+
+  scrambleStartTime = Date.now();
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - scrambleStartTime) / 1000);
+        document.getElementById("timer").textContent = `Time: ${elapsed}s`;
+    }, 1000);
 }
 let stateArray =
   //left,up,right,down
@@ -188,6 +216,7 @@ function changeView() {
 }
 function resetColor(skipSound=false) {
   if(!skipSound) playSound('reset',0.2);
+  stopTimer();
   for (let i = 0; i < 6; i++) {
     let pieces = document.querySelectorAll("." + direction[i] + " .part");
     for (let j = 0; j < 18; j++) {
@@ -469,3 +498,11 @@ document.body.addEventListener('mouseleave', handleDragEnd); // In case mouse le
 document.body.addEventListener('touchstart', handleDragStart, { passive: false });
 document.body.addEventListener('touchmove', handleDragMove, { passive: false });
 document.body.addEventListener('touchend', handleDragEnd);
+
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
