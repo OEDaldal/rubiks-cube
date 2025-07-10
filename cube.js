@@ -36,48 +36,51 @@ function turn(index, face) {
   for (let i = 0; i < 8; i++) {
     let currentElement = document.getElementById(face + faceArray[i]);
     faceColorArray.push(
-      window
-        .getComputedStyle(currentElement)
-        .getPropertyValue("background-color")
+        window
+            .getComputedStyle(currentElement)
+            .getPropertyValue("background-color")
     );
   }
   for (let i = 0; i < 8; i++) {
     document.getElementById(face + faceArray[i]).style.backgroundColor =
-      faceColorArray[(i + 2) % 8];
+        faceColorArray[(i + 2) % 8];
     document.getElementById("x" + face + faceArray[i]).style.backgroundColor =
-      faceColorArray[(i + 2) % 8];
+        faceColorArray[(i + 2) % 8];
   }
   let sideColorArray = [];
   for (let i = 0; i < 12; i++) {
     let currentElement = document.getElementById(sideArray[index][i]);
     sideColorArray.push(
-      window
-        .getComputedStyle(currentElement)
-        .getPropertyValue("background-color")
+        window
+            .getComputedStyle(currentElement)
+            .getPropertyValue("background-color")
     );
   }
   for (let i = 0; i < 12; i++) {
     document.getElementById(sideArray[index][i]).style.backgroundColor =
-      sideColorArray[(i + 3) % 12];
+        sideColorArray[(i + 3) % 12];
     document.getElementById("x" + sideArray[index][i]).style.backgroundColor =
-      sideColorArray[(i + 3) % 12];
+        sideColorArray[(i + 3) % 12];
   }
-}
 // Check if cube is solved
-let isSolved = true;
-for (let i = 0; i < 6; i++) {
-  let pieces = document.querySelectorAll("." + direction[i] + " .part");
-  for (let j = 0; j < 18; j++) {
-    if (pieces[j].style.backgroundColor !== mainColor[i]) {
-      isSolved = false;
-      break;
+  let isSolved = true;
+  for (let i = 0; i < 6; i++) {
+    let pieces = document.querySelectorAll("." + direction[i] + " .part");
+    for (let j = 0; j < 18; j++) {
+      // Normalize both actual and expected color strings (remove all whitespace)
+      const actual = getComputedStyle(pieces[j]).getPropertyValue("background-color").replace(/\s+/g, '');
+      const expected = mainColor[i].replace(/\s+/g, '');
+      if (actual !== expected) {
+        isSolved = false;
+        break;
+      }
     }
+    if (!isSolved) break;
   }
-  if (!isSolved) break;
-}
 
-if (isSolved) {
-  stopTimer();
+  if (isSolved) {
+    stopTimer();
+  }
 }
 let translationMatrix = [
 [0,'r','b','l','f','r','u','l','d','f','u','b','d','r','d','l','u','f','d','b','u','r','f','l','b'],        //matrix is used for translating every move
@@ -504,5 +507,15 @@ function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
+
+    const elapsed = Math.floor((Date.now() - scrambleStartTime) / 1000);
+    const score = calculateScore(elapsed);
+    document.getElementById("timer").textContent += ` | Score: ${score}`;
   }
+}
+
+function calculateScore(timeInSeconds) {
+  const baseScore = 1000;
+  const penalty = timeInSeconds * 4; // Losing 4 points per second
+  return Math.max(baseScore - penalty, 0); // Prevent negative score
 }
