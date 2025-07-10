@@ -67,7 +67,7 @@ function turn(index, face) {
   for (let i = 0; i < 6; i++) {
     let pieces = document.querySelectorAll("." + direction[i] + " .part");
     for (let j = 0; j < 18; j++) {
-      // Normalize both actual and expected color strings (remove all whitespace)
+      // Remove all whitespaces to check the dolor of each side
       const actual = getComputedStyle(pieces[j]).getPropertyValue("background-color").replace(/\s+/g, '');
       const expected = mainColor[i].replace(/\s+/g, '');
       if (actual !== expected) {
@@ -513,7 +513,6 @@ function stopTimer() {
 
     const elapsed = Math.floor((Date.now() - scrambleStartTime) / 1000);
     const score = calculateScore(elapsed);
-    document.getElementById("timer").textContent += ` | Score: ${score}`;
   }
 }
 
