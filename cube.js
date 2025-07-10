@@ -510,9 +510,6 @@ function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
     timerInterval = null;
-
-    const elapsed = Math.floor((Date.now() - scrambleStartTime) / 1000);
-    const score = calculateScore(elapsed);
   }
 }
 
